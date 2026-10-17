@@ -1,0 +1,31 @@
+<x-layouts.admin title="Add new user" crumb="Add new user">
+    <x-page-header title="Add new user" subtitle="Create a login for a teacher, finance officer, parent, student or another admin." />
+
+    <div class="mt-6 grid gap-5 xl:grid-cols-3">
+        <form method="POST" action="{{ route('admin.users.store') }}" class="space-y-4 rounded-2xl border border-line bg-white p-6 xl:col-span-2">
+            @csrf
+            <div class="grid gap-4 sm:grid-cols-2">
+                <x-form-field name="name" label="Full name" required />
+                <x-form-field name="email" type="email" label="Email" required />
+                <label class="block">
+                    <span class="text-sm font-medium">Role</span>
+                    <select name="role" class="mt-1.5 w-full rounded-xl border-line bg-white py-2.5 text-sm">
+                        @foreach ($roles as $v => $l) <option value="{{ $v }}" @selected(old('role') === $v)>{{ $l }}</option> @endforeach
+                    </select>
+                </label>
+                <x-form-field name="password" type="password" label="Temporary password (8+ characters)" autocomplete="new-password" required />
+            </div>
+            <p class="text-sm text-ink-soft">Choose the role carefully: it decides which area of the system the person can open.</p>
+            <button class="rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-white hover:bg-primary-hover">Create account</button>
+        </form>
+
+        <section class="rounded-2xl border border-line bg-white p-6">
+            <h2 class="text-lg font-semibold">Recently added</h2>
+            <ul class="mt-3 divide-y divide-line text-[15px]">
+                @foreach ($users as $u)
+                    <li class="py-2.5"><p class="font-medium">{{ $u->name }}</p><p class="text-sm text-ink-soft">{{ $u->email }} · {{ $roles[$u->role] ?? $u->role }}</p></li>
+                @endforeach
+            </ul>
+        </section>
+    </div>
+</x-layouts.admin>
