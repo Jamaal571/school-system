@@ -12,6 +12,13 @@ use App\Http\Controllers\Admin\StaffController;
 use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\Teacher\AssignmentController;
+use App\Http\Controllers\Teacher\AttendanceController as TeacherAttendanceController;
+use App\Http\Controllers\Teacher\ClassController;
+use App\Http\Controllers\Teacher\DashboardController as TeacherDashboardController;
+use App\Http\Controllers\Teacher\GradebookController;
+use App\Http\Controllers\Teacher\TimetableController;
+use App\Models\Announcement;
 use App\Http\Controllers\ProfileController;
 use App\Http\Middleware\EnsureRole;
 use Illuminate\Support\Facades\Route;
@@ -66,8 +73,33 @@ Route::middleware(['auth', EnsureRole::class.':admin'])->prefix('admin')->name('
     Route::view('help', 'admin.help')->name('help');
 });
 
+// ---- Teacher ----
+Route::middleware(['auth', EnsureRole::class.':teacher'])->prefix('teacher')->name('teacher.')->group(function () {
+    Route::get('/', [TeacherDashboardController::class, 'index'])->name('dashboard');
+
+    Route::get('classes', [ClassController::class, 'index'])->name('classes');
+    Route::get('classes/{class}', [ClassController::class, 'show'])->name('classes.show');
+
+    Route::get('attendance', [TeacherAttendanceController::class, 'index'])->name('attendance');
+    Route::post('attendance', [TeacherAttendanceController::class, 'store'])->name('attendance.store');
+
+    Route::get('assignments', [AssignmentController::class, 'index'])->name('assignments');
+    Route::get('assignments/create', [AssignmentController::class, 'create'])->name('assignments.create');
+    Route::post('assignments', [AssignmentController::class, 'store'])->name('assignments.store');
+    Route::get('assignments/{assignment}/grade', [AssignmentController::class, 'grade'])->name('assignments.grade');
+    Route::post('assignments/{assignment}/grade', [AssignmentController::class, 'saveGrades'])->name('assignments.grades');
+
+    Route::get('gradebook', [GradebookController::class, 'index'])->name('gradebook');
+    Route::get('timetable', [TimetableController::class, 'index'])->name('timetable');
+
+    Route::get('communications', fn () => view('teacher.communications', [
+        'announcements' => Announcement::with('user')->whereIn('audience', ['all', 'teachers'])->latest()->paginate(10),
+    ]))->name('communications');
+    Route::view('help', 'teacher.help')->name('help');
+});
+
 // ---- Other roles: placeholders until their dashboards are built ----
-foreach (['teacher' => 'Teacher', 'finance' => 'Finance', 'parent' => 'Parent', 'student' => 'Student'] as $role => $label) {
+foreach (['finance' => 'Finance', 'parent' => 'Parent', 'student' => 'Student'] as $role => $label) {
     Route::middleware(['auth', EnsureRole::class.':'.$role])->prefix($role)->name($role.'.')->group(function () use ($label) {
         Route::get('/', fn () => view('dashboards.coming-soon', ['role' => $label]))->name('dashboard');
     });

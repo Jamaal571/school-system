@@ -1,5 +1,5 @@
 @props(['label', 'value', 'icon', 'note', 'tone' => 'muted', 'arrow' => false])
-@php $tones = ['success' => 'text-success', 'primary' => 'text-primary', 'muted' => 'text-ink-soft', 'danger' => 'text-danger']; @endphp
+@php $tones = ['success' => 'text-success', 'primary' => 'text-primary', 'muted' => 'text-ink-soft', 'danger' => 'text-danger', 'warning' => 'text-warning']; @endphp
 
 <div {{ $attributes->class('rounded-2xl border border-line bg-white p-6') }}>
     <div class="flex items-center justify-between">
