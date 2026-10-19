@@ -18,6 +18,21 @@ use App\Http\Controllers\Teacher\ClassController;
 use App\Http\Controllers\Teacher\DashboardController as TeacherDashboardController;
 use App\Http\Controllers\Teacher\GradebookController;
 use App\Http\Controllers\Teacher\TimetableController;
+use App\Http\Controllers\Finance\BudgetController;
+use App\Http\Controllers\Finance\CollectionController;
+use App\Http\Controllers\Finance\InvoiceController;
+use App\Http\Controllers\Finance\OverviewController;
+use App\Http\Controllers\Finance\PayrollController;
+use App\Http\Controllers\Finance\ReportController as FinanceReportController;
+use App\Http\Controllers\Finance\TransactionController;
+use App\Http\Controllers\Admin\EventController;
+use App\Http\Controllers\MessageController;
+use App\Http\Controllers\ParentPortal\AttendanceController as ParentAttendanceController;
+use App\Http\Controllers\ParentPortal\CalendarController;
+use App\Http\Controllers\ParentPortal\ChildrenController;
+use App\Http\Controllers\ParentPortal\DashboardController as ParentDashboardController;
+use App\Http\Controllers\ParentPortal\FeesController;
+use App\Http\Controllers\ParentPortal\ProgressController;
 use App\Models\Announcement;
 use App\Http\Controllers\ProfileController;
 use App\Http\Middleware\EnsureRole;
@@ -71,6 +86,10 @@ Route::middleware(['auth', EnsureRole::class.':admin'])->prefix('admin')->name('
     Route::put('settings', [SettingsController::class, 'update'])->name('settings.update');
 
     Route::view('help', 'admin.help')->name('help');
+
+    Route::get('events', [EventController::class, 'index'])->name('events');
+    Route::post('events', [EventController::class, 'store'])->name('events.store');
+    Route::delete('events/{event}', [EventController::class, 'destroy'])->name('events.destroy');
 });
 
 // ---- Teacher ----
@@ -92,14 +111,78 @@ Route::middleware(['auth', EnsureRole::class.':teacher'])->prefix('teacher')->na
     Route::get('gradebook', [GradebookController::class, 'index'])->name('gradebook');
     Route::get('timetable', [TimetableController::class, 'index'])->name('timetable');
 
+    Route::get('messages', [MessageController::class, 'index'])->name('messages');
+    Route::get('messages/new', [MessageController::class, 'create'])->name('messages.create');
+    Route::post('messages', [MessageController::class, 'store'])->name('messages.store');
+    Route::get('messages/{user}', [MessageController::class, 'show'])->name('messages.show');
+
     Route::get('communications', fn () => view('teacher.communications', [
         'announcements' => Announcement::with('user')->whereIn('audience', ['all', 'teachers'])->latest()->paginate(10),
     ]))->name('communications');
     Route::view('help', 'teacher.help')->name('help');
 });
 
+// ---- Finance ----
+Route::middleware(['auth', EnsureRole::class.':finance'])->prefix('finance')->name('finance.')->group(function () {
+    Route::get('/', [OverviewController::class, 'index'])->name('dashboard');
+
+    Route::get('collections', [CollectionController::class, 'index'])->name('collections');
+    Route::post('collections/offline', [CollectionController::class, 'offline'])->name('collections.offline');
+    Route::post('invoices/{invoice}/payments', [CollectionController::class, 'pay'])->name('payments.store');
+    Route::post('invoices/{invoice}/remind', [CollectionController::class, 'remind'])->name('invoices.remind');
+
+    Route::get('invoices', [InvoiceController::class, 'index'])->name('invoices');
+    Route::post('invoices', [InvoiceController::class, 'store'])->name('invoices.store');
+
+    Route::get('transactions', [TransactionController::class, 'index'])->name('transactions');
+    Route::post('expenses', [TransactionController::class, 'storeExpense'])->name('expenses.store');
+
+    Route::get('payroll', [PayrollController::class, 'index'])->name('payroll');
+    Route::post('payroll', [PayrollController::class, 'process'])->name('payroll.process');
+    Route::put('payroll/salaries', [PayrollController::class, 'saveSalaries'])->name('payroll.salaries');
+
+    Route::get('budgets', [BudgetController::class, 'index'])->name('budgets');
+    Route::post('budgets', [BudgetController::class, 'store'])->name('budgets.store');
+
+    Route::get('reports', [FinanceReportController::class, 'index'])->name('reports');
+    Route::get('reports/export/{type}', [FinanceReportController::class, 'export'])->name('reports.export');
+
+    Route::get('communications', fn () => view('finance.communications', [
+        'announcements' => Announcement::with('user')->where('audience', 'all')->latest()->paginate(10),
+    ]))->name('communications');
+    Route::view('help', 'finance.help')->name('help');
+});
+
+// ---- Parent ----
+Route::middleware(['auth', EnsureRole::class.':parent'])->prefix('parent')->name('parent.')->group(function () {
+    Route::get('/', [ParentDashboardController::class, 'index'])->name('dashboard');
+
+    Route::get('children', [ChildrenController::class, 'index'])->name('children');
+    Route::get('children/{student}', [ChildrenController::class, 'show'])->name('children.show');
+
+    Route::get('progress', [ProgressController::class, 'index'])->name('progress');
+    Route::get('attendance', [ParentAttendanceController::class, 'index'])->name('attendance');
+
+    Route::get('fees', [FeesController::class, 'index'])->name('fees');
+    Route::get('fees/invoices/{invoice}', [FeesController::class, 'invoice'])->name('invoices.show');
+    Route::get('fees/invoices/{invoice}/pay', [FeesController::class, 'pay'])->name('invoices.pay');
+    Route::get('fees/payments/{payment}/receipt', [FeesController::class, 'receipt'])->name('receipts.show');
+
+    Route::get('calendar', [CalendarController::class, 'index'])->name('calendar');
+    Route::get('announcements', fn () => view('parent.announcements', [
+        'announcements' => Announcement::with('user')->whereIn('audience', ['all', 'parents'])->latest()->paginate(10),
+    ]))->name('announcements');
+
+    Route::get('messages', [MessageController::class, 'index'])->name('messages');
+    Route::get('messages/new', [MessageController::class, 'create'])->name('messages.create');
+    Route::post('messages', [MessageController::class, 'store'])->name('messages.store');
+    Route::get('messages/{user}', [MessageController::class, 'show'])->name('messages.show');
+
+    Route::view('help', 'parent.help')->name('help');
+});
+
 // ---- Other roles: placeholders until their dashboards are built ----
-foreach (['finance' => 'Finance', 'parent' => 'Parent', 'student' => 'Student'] as $role => $label) {
+foreach (['student' => 'Student'] as $role => $label) {
     Route::middleware(['auth', EnsureRole::class.':'.$role])->prefix($role)->name($role.'.')->group(function () use ($label) {
         Route::get('/', fn () => view('dashboards.coming-soon', ['role' => $label]))->name('dashboard');
     });

@@ -8,7 +8,7 @@ class StaffMember extends Model
 {
     protected $guarded = [];
 
-    protected $casts = ['hired_on'=>'date'];
+    protected $casts = ['hired_on' => 'date', 'monthly_salary' => 'decimal:2'];
 
     public function user() { return $this->belongsTo(User::class); }
     public function classes() { return $this->hasMany(SchoolClass::class, 'homeroom_teacher_id'); }

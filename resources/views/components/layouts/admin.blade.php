@@ -24,6 +24,7 @@
         ['Finance',          'admin.finance',        'wallet',                   null,                   'admin.finance*'],
         ['Approvals',        'admin.approvals',      'clipboard-document-check', $pending ?: null,       'admin.approvals*'],
         ['Reports',          'admin.reports',        'presentation-chart-line',  null,                   'admin.reports*'],
+        ['School calendar',  'admin.events',         'calendar',                 null,                   'admin.events*'],
         ['Communications',   'admin.communications', 'chat-bubble-left-right',   \App\Models\Announcement::where('created_at', '>=', now()->subDays(7))->count() ?: null,                      'admin.communications*'],
     ];
     $link = fn ($r) => Route::has($r) ? route($r) : '#';

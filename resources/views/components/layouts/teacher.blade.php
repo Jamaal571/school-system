@@ -15,6 +15,7 @@
     $toGrade = \App\Models\Submission::whereHas('assignment', fn ($q) => $q->whereIn('staff_member_id', $teacherIds))
         ->whereNotNull('submitted_on')->whereNull('score')->count();
     $news = \App\Models\Announcement::whereIn('audience', ['all', 'teachers'])->where('created_at', '>=', now()->subDays(7))->count();
+    $unread = \App\Models\Message::where('to_user_id', $user->id)->whereNull('read_at')->count();
     $year = \App\Models\AcademicYear::current();
     $term = $year?->currentTerm();
     $week = $term ? max(1, (int) floor($term->starts_on->diffInDays(today()) / 7) + 1) : null;
@@ -27,7 +28,8 @@
         ['Assignments',    'teacher.assignments',    'clipboard-document-check', $toGrade ?: null, 'teacher.assignments*'],
         ['Gradebook',      'teacher.gradebook',      'book-open',                null,            'teacher.gradebook'],
         ['Timetable',      'teacher.timetable',      'calendar',                 null,            'teacher.timetable'],
-        ['Communications', 'teacher.communications', 'chat-bubble-left-right',   $news ?: null,   'teacher.communications'],
+        ['Messages',       'teacher.messages',       'chat-bubble-left-right',   $unread ?: null, 'teacher.messages*'],
+        ['Announcements',  'teacher.communications', 'megaphone',                $news ?: null,   'teacher.communications'],
     ];
 @endphp
 
