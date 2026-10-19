@@ -64,7 +64,10 @@ class AssignmentController extends TeacherBaseController
     public function saveGrades(Request $request, Assignment $assignment)
     {
         $this->authorizeOwner($assignment);
-        $data = $request->validate(['scores' => 'nullable|array', 'scores.*' => "nullable|numeric|min:0|max:{$assignment->max_score}"]);
+        $data = $request->validate([
+            'scores' => 'nullable|array', 'scores.*' => "nullable|numeric|min:0|max:{$assignment->max_score}",
+            'feedback' => 'nullable|array', 'feedback.*' => 'nullable|string|max:300',
+        ]);
 
         $enrolled = Enrollment::where('school_class_id', $assignment->school_class_id)->pluck('student_id')->map(fn ($id) => (int) $id)->all();
         $saved = 0;
@@ -75,6 +78,7 @@ class AssignmentController extends TeacherBaseController
             $submission = Submission::firstOrNew(['assignment_id' => $assignment->id, 'student_id' => $studentId]);
             $submission->submitted_on ??= now()->toDateString();
             $submission->score = $score;
+            $submission->feedback = filled($data['feedback'][$studentId] ?? null) ? $data['feedback'][$studentId] : $submission->feedback;
             $submission->graded_at = now();
             $submission->save();
             $saved++;

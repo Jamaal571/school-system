@@ -26,7 +26,7 @@
             <x-form-field name="description" label="Details (optional)" />
             <div class="grid grid-cols-2 gap-3">
                 <label class="block"><span class="text-sm font-medium">Type</span><select name="type" class="mt-1.5 w-full rounded-xl border-line bg-white py-2.5 text-sm"><option value="event">Event</option><option value="meeting">Meeting</option><option value="holiday">Holiday</option></select></label>
-                <label class="block"><span class="text-sm font-medium">Shown to</span><select name="audience" class="mt-1.5 w-full rounded-xl border-line bg-white py-2.5 text-sm"><option value="all">Everyone</option><option value="parents">Parents</option><option value="teachers">Teachers</option></select></label>
+                <label class="block"><span class="text-sm font-medium">Shown to</span><select name="audience" class="mt-1.5 w-full rounded-xl border-line bg-white py-2.5 text-sm"><option value="all">Everyone</option><option value="parents">Parents</option><option value="students">Students</option><option value="teachers">Teachers</option></select></label>
             </div>
             <button class="w-full rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary-hover">Add to calendar</button>
         </form>

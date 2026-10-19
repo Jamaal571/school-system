@@ -33,6 +33,12 @@ use App\Http\Controllers\ParentPortal\ChildrenController;
 use App\Http\Controllers\ParentPortal\DashboardController as ParentDashboardController;
 use App\Http\Controllers\ParentPortal\FeesController;
 use App\Http\Controllers\ParentPortal\ProgressController;
+use App\Http\Controllers\StudentPortal\AssignmentController as StudentAssignmentController;
+use App\Http\Controllers\StudentPortal\AttendanceController as StudentAttendanceController;
+use App\Http\Controllers\StudentPortal\CourseController;
+use App\Http\Controllers\StudentPortal\DashboardController as StudentDashboardController;
+use App\Http\Controllers\StudentPortal\GradesController;
+use App\Http\Controllers\StudentPortal\TimetableController as StudentTimetableController;
 use App\Models\Announcement;
 use App\Http\Controllers\ProfileController;
 use App\Http\Middleware\EnsureRole;
@@ -181,11 +187,30 @@ Route::middleware(['auth', EnsureRole::class.':parent'])->prefix('parent')->name
     Route::view('help', 'parent.help')->name('help');
 });
 
-// ---- Other roles: placeholders until their dashboards are built ----
-foreach (['student' => 'Student'] as $role => $label) {
-    Route::middleware(['auth', EnsureRole::class.':'.$role])->prefix($role)->name($role.'.')->group(function () use ($label) {
-        Route::get('/', fn () => view('dashboards.coming-soon', ['role' => $label]))->name('dashboard');
-    });
-}
+// ---- Student ----
+Route::middleware(['auth', EnsureRole::class.':student'])->prefix('student')->name('student.')->group(function () {
+    Route::get('/', [StudentDashboardController::class, 'index'])->name('dashboard');
+
+    Route::get('courses', [CourseController::class, 'index'])->name('courses');
+    Route::get('courses/{subject}', [CourseController::class, 'show'])->name('courses.show');
+
+    Route::get('assignments', [StudentAssignmentController::class, 'index'])->name('assignments');
+    Route::get('assignments/{assignment}', [StudentAssignmentController::class, 'show'])->name('assignments.show');
+
+    Route::get('timetable', [StudentTimetableController::class, 'index'])->name('timetable');
+    Route::get('grades', [GradesController::class, 'index'])->name('grades');
+    Route::get('attendance', [StudentAttendanceController::class, 'index'])->name('attendance');
+
+    Route::get('announcements', fn () => view('student.announcements', [
+        'announcements' => Announcement::with('user')->whereIn('audience', ['all', 'students'])->latest()->paginate(10),
+    ]))->name('announcements');
+
+    Route::get('messages', [MessageController::class, 'index'])->name('messages');
+    Route::get('messages/new', [MessageController::class, 'create'])->name('messages.create');
+    Route::post('messages', [MessageController::class, 'store'])->name('messages.store');
+    Route::get('messages/{user}', [MessageController::class, 'show'])->name('messages.show');
+
+    Route::view('help', 'student.help')->name('help');
+});
 
 require __DIR__.'/auth.php';

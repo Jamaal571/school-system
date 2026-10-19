@@ -1,5 +1,5 @@
 <x-dynamic-component :component="'layouts.'.$role" title="Messages" crumb="Messages">
-    <x-page-header title="Messages" :subtitle="$role === 'parent' ? 'Conversations with your children’s teachers.' : 'Conversations with parents.'">
+    <x-page-header title="Messages" :subtitle="$role !== 'teacher' ? 'Conversations with your children’s teachers.' : 'Conversations with parents.'">
         <a href="{{ route($role.'.messages.create') }}" class="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white hover:bg-primary-hover"><x-app-icon name="plus" class="h-5 w-5" /> New message</a>
     </x-page-header>
     <ul class="mt-6 divide-y divide-line overflow-hidden rounded-2xl border border-line bg-white">

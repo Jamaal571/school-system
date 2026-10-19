@@ -20,6 +20,8 @@
                                    class="w-24 rounded-lg border-line px-3 py-1.5 text-sm" aria-label="Score for {{ $e->student->full_name }}">
                             / {{ $assignment->max_score }}
                         </label>
+                        <input type="text" name="feedback[{{ $e->student_id }}]" value="{{ old('feedback.'.$e->student_id, $sub?->feedback) }}" maxlength="300"
+                               placeholder="Feedback for the student (optional)" class="w-full rounded-lg border-line px-3 py-1.5 text-sm" aria-label="Feedback for {{ $e->student->full_name }}">
                     </li>
                 @endforeach
             </ul>

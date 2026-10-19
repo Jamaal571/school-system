@@ -73,7 +73,20 @@ class MessageController extends Controller
             $classIds = TimetableSlot::where('staff_member_id', $me?->id)->pluck('school_class_id')->merge(SchoolClass::where('homeroom_teacher_id', $me?->id)->pluck('id'))->unique();
             $students = \App\Models\Enrollment::whereIn('school_class_id', $classIds)->pluck('student_id');
 
-            return User::whereIn('id', Guardian::whereHas('students', fn ($q) => $q->whereIn('students.id', $students))->whereNotNull('user_id')->pluck('user_id'))->orderBy('name')->get();
+            $ids = Guardian::whereHas('students', fn ($q) => $q->whereIn('students.id', $students))->whereNotNull('user_id')->pluck('user_id')
+                ->merge(\App\Models\Student::whereIn('id', $students)->whereNotNull('user_id')->pluck('user_id'));
+
+            return User::whereIn('id', $ids)->orderBy('name')->get();
+        }
+
+        if ($user->role === 'student') {
+            $me = \App\Models\Student::where('user_id', $user->id)->first();
+            $classIds = \App\Models\Enrollment::where('student_id', $me?->id)->pluck('school_class_id');
+            $staffIds = TimetableSlot::whereIn('school_class_id', $classIds)->pluck('staff_member_id')
+                ->merge(SchoolClass::whereIn('id', $classIds)->pluck('homeroom_teacher_id'))
+                ->merge(Assignment::whereIn('school_class_id', $classIds)->pluck('staff_member_id'))->filter()->unique();
+
+            return User::whereIn('id', StaffMember::whereIn('id', $staffIds)->whereNotNull('user_id')->pluck('user_id'))->orderBy('name')->get();
         }
 
         return collect();
